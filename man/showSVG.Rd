@@ -2,23 +2,40 @@
 % Please edit documentation in R/hello.R
 \name{showSVG}
 \alias{showSVG}
-\title{Show Venn diagram. Automatically called from toVenn.}
+\title{Show Venn diagram. Automatically called from plotVenn.}
 \usage{
-showSVG(mySVG, opacity = 0.4, outFile = "", systemShow = FALSE)
+showSVG(nVennObj, opacity = 0.4, borderWidth = 1, outFile = "",
+  systemShow = FALSE, showProgress = FALSE, labelRegions = T,
+  showNumbers = T, setColors = NULL, fontScale = 1)
 }
 \arguments{
-\item{mySVG}{SVG code defining the diagram. Can be retrieved from toVenn.}
+\item{nVennObj}{Object with nVennR information. Can be obtained from a plotVenn call.}
 
 \item{opacity}{Fill opacity for the sets. Defaults to 0.4.}
 
-\item{outFile}{File name to save SVG figure. If empty, a temp file will be created and
-shown in the viewer, if possible.}
+\item{borderWidth}{Width of set borders. Defaults to 1.}
 
-\item{systemShow}{Show the result in the system SVG viewer.}
+\item{outFile}{File name to save SVG figure. If empty, a temp file will be created and
+sent to the graphic device.}
+
+\item{systemShow}{Show the result in the system SVG viewer (i. e., Inkscape).}
+
+\item{showProgress}{Show progress bar during computation.}
+
+\item{labelRegions}{Show region identifiers. These are numbers in parentheses inside each region
+indicating which sets that region belongs to. Defaults to true}
+
+\item{showNumbers}{Show how many elements belong to each region (large numbers in the figure).
+Defaults to true}
+
+\item{setColors}{Vector with the color of each set in order. Color names must be CSS-compatible.}
+
+\item{fontScale}{Multiplier for font sizes. The font size of both numbers and region labels will
+be multiplied by this factor. Values larger than 2 will probably make labels clash.}
 }
 \value{
 Nothing. Creates a Venn diagram in svg as a side effect.
 }
 \description{
-Show Venn diagram. Automatically called from toVenn.
+Show Venn diagram. Automatically called from plotVenn.
 }

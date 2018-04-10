@@ -2,12 +2,7 @@
 % Please edit documentation in R/hello.R
 \name{toVenn}
 \alias{toVenn}
-\title{Create Venn diagram using the nVenn algorithm. This algorithm is based on a simulation
-that compacts the figure. To avoid clogging the system, the simulation stops every 7e3
-cycles and asks the user if it sould go on. Only answering 'y' continues. Once the
-diagram is compact, it will be slightly embellished. By default, the resulting figure
-is show at the viewer, but users can also capture the return value and call showVenn
-with other parameters.}
+\title{This function is deprecated, only kept for backward compatibility.}
 \usage{
 toVenn(..., draw = TRUE)
 }
@@ -21,17 +16,12 @@ is a list with a name, that name will be used for the legend.}
 SVG code for the Venn diagram.
 }
 \description{
-Create Venn diagram using the nVenn algorithm. This algorithm is based on a simulation
-that compacts the figure. To avoid clogging the system, the simulation stops every 7e3
-cycles and asks the user if it sould go on. Only answering 'y' continues. Once the
-diagram is compact, it will be slightly embellished. By default, the resulting figure
-is show at the viewer, but users can also capture the return value and call showVenn
-with other parameters.
+Please, use plotVenn instead. Please, notice that input and output are different.
 }
 \examples{
 set1 <- c('a', 'b', 'c')
 set2 <- c('e', 'f', 'c')
 set3 <- c('c', 'b', 'e')
 mySVG <- toVenn(set1, set2, set3)
-showSVG(mySVG=mySVG, opacity=0.2)
+oldShowSVG(mySVG=mySVG, opacity=0.2)
 }

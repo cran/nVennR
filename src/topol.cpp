@@ -2,7 +2,8 @@
 #include <vector>
 #include <cmath>
 #include <time.h>
-
+// [[Rcpp::depends(RcppProgress)]]
+#include <progress.hpp>
 
 
 #define CIRCLE_MASS 200.0f
@@ -736,6 +737,7 @@ class borderLine
     temp.radius = 1;
     warn.insert(warn.end(), temp);
   }
+
 
   string float2string(float f){
     char* dsp = (char*) calloc(100, sizeof(char));
@@ -1897,61 +1899,101 @@ class borderLine
       return bl;
     }
 
-    /*void setCoords(string dataFile){
-      ifstream vFile;
-      vFile.open(dataFile.c_str());
+    void quack(){
+      UINT i = 0;
+      Rprintf("%d groups:\n", bl.size());
+      for (i = 0; i < bl.size(); i++){
+        Rprintf("\tGroup %d: %d points\n", i, bl[i].size());
+      }
+    }
+
+    std::vector<std::string> split_string(const std::string& str,
+                                          const std::string& delimiter)
+    {
+      std::vector<std::string> strings;
+
+      std::string::size_type pos = 0;
+      std::string::size_type prev = 0;
+      while ((pos = str.find(delimiter, prev)) != std::string::npos)
+      {
+        strings.push_back(str.substr(prev, pos - prev));
+        prev = pos + delimiter.size();
+      }
+
+      // To get the last substring (or only, if delimiter is not found)
+      strings.push_back(str.substr(prev));
+
+      return strings;
+    }
+
+    void setCoords(string dataFile){
       UINT ncI = 0;
-      if (vFile.good() == true){
-        bl.clear();
-        bl_old5.clear();
-        bl_old10.clear();
-        string line;
-        getline(vFile, line); // _F
-        getline(vFile, line); // ncyclesInterrupted or _L
-        if (line != "_L"){
-          int c = atoi(line.c_str());
-          if (c > 0) ncI = (UINT) c;
-          blSettings.ncyclesInterrupted = ncI;
-          getline(vFile, line); // _L
+      UINT i = 0;
+      vector<string> l = split_string(dataFile, "\n");
+      bl.clear();
+      bl_old5.clear();
+      bl_old10.clear();
+      string line = l[i];
+      //getline(vFile, line); // _F
+      i++; line = l[i]; // ncyclesInterrupted or _L
+      if (line != "_L"){
+        int c = atoi(line.c_str());
+        if (c > 0) ncI = (UINT) c;
+        blSettings.ncyclesInterrupted = ncI;
+        i++; line = l[i];
+      }
+      bool strend = false;
+      while (line == "_L" && strend == false){
+        vector<point> thisline;
+        //getline(vFile, line); // First x coord
+        i++; line = l[i];
+        while (line != "_L" && line != "_C" && strend == false){
+          float x = atof(line.c_str());
+          //getline(vFile, line);
+          i++; line = l[i];
+          float y = atof(line.c_str());
+          point p; initPoint(&p);
+          p.x = x; p.y = y;
+          setScale(p);
+          thisline.insert(thisline.end(), p);
+          //getline(vFile, line);
+          i++; line = l[i];
         }
-        while (line == "_L" && vFile.eof() == false){
-          vector<point> thisline;
-          getline(vFile, line); // First x coord
-          while (line != "_L" && line != "_C" && vFile.eof() == false){
-            float x = atof(line.c_str());
-            getline(vFile, line);
-            float y = atof(line.c_str());
-            point p; initPoint(&p);
-            p.x = x; p.y = y;
-            setScale(p);
-            thisline.insert(thisline.end(), p);
-            getline(vFile, line);
+        //if (i >= nLines || line == "_C") strend = true;
+        bl.insert(bl.end(), thisline);
+      }
+      if (line == "_C"){
+        //getline(vFile, line);
+        i++; line = l[i];
+        int j = 0;
+        while (strend == false){
+          float x = atof(line.c_str());
+          //getline(vFile, line);
+          i++; line = l[i];
+          float y = atof(line.c_str());
+          //getline(vFile, line);
+          i++; line = l[i];
+          float r = atof(line.c_str());
+          //getline(vFile, line);
+          i++; line = l[i];
+          circles[j].x = x; circles[j].y = y; circles[j].radius = r;
+          if (i >= (l.size() - 1)){
+            strend = true;
           }
-          bl.insert(bl.end(), thisline);
-        }
-        if (line == "_C"){
-          getline(vFile, line);
-          int i = 0;
-          while (vFile.eof() == false){
-            float x = atof(line.c_str());
-            getline(vFile, line);
-            float y = atof(line.c_str());
-            getline(vFile, line);
-            float r = atof(line.c_str());
-            getline(vFile, line);
-            circles[i].x = x; circles[i].y = y; circles[i].radius = r;
-            i++;
-          }
+          j++;
         }
       }
-    }*/
+      initOlds();
+      //Rprintf("Written coords for %d lines\n", bl.size());
+    }
 
-    fileText saveFigure(){
+    string saveFigure(){
       fileText result;
       result.addLine("_F");
       string nc = UINT2string(blSettings.ncyclesInterrupted);
       result.addLine(nc);
       UINT i; UINT j;
+      //Rprintf("blSize: %d\n", bl.size());
       for (i = 0; i < bl.size(); i++){
         result.addLine("_L");
         for (j = 0; j < bl[i].size(); j++){
@@ -1970,7 +2012,7 @@ class borderLine
         result.addLine(y);
         result.addLine(r);
       }
-      return result;
+      return result.getText();
     }
 
 
@@ -2062,6 +2104,10 @@ class borderLine
       svg.addLine((string) t);
       svg.addLine("	   text-anchor: middle;");
       svg.addLine("	   alignment-baseline: central;");
+      svg.addLine("  }");
+      svg.addLine("  .legend {");
+      svg.addLine("    font-family: Arial;");
+      svg.addLine("    font-size: 15px;");
       svg.addLine("  }");
       for (i = 0; i < ngroups; i++){
         svg.addLine("  .p" + num(i) + "{");
@@ -2454,23 +2500,26 @@ class borderLine
 
 
 
-    void simulate(int maxRel = 0)
+    void simulate(UINT nCycles = 7e3, bool showProgress = false, int maxRel = 0)
     {
       UINT i;
-      UINT it1 = (UINT) 7e3;
+      UINT it1 = nCycles;
       point minP;
       initPoint(&minP);
       point maxP;
       initPoint(&maxP);
       udt.init(rdt);
-      Rprintf("Starting...\n");
-
-
+      Progress p(it1, showProgress); // we need an instance, should be improved in next version
+      if (showProgress == true){
+        Rprintf("Starting...\n");
+      }
       for (i = 0; i < it1; i++){
         setForces1();
         solve();
-      }
+        if (Progress::check_abort() ) return;
+        if (showProgress == true) p.increment();
 
+      }
       //setForces3();
       UINT counter;
       for (counter = 0; counter < dataDisplay.size(); counter++){
@@ -2478,27 +2527,31 @@ class borderLine
       }
       dataDisplay.clear();
     }
-    void refine(){
+    void refine(bool showProgress = false){
       UINT i;
       UINT it2 = (UINT) 2e2;
-      Rprintf("Refining...\n");
+      if (showProgress == true) Rprintf("Refining...\n");
+      blSettings.lrdt = rdt / 10;
+      setAsStable();
       UINT np = (UINT) (1.5f * (float) startPerim);
       interpolate(np);
       blSettings.margin /= 10;
       setRadii();
+      Progress p(it2, showProgress);
       for (i = 0; i < it2; i++){
         setForces2();
         solve(true);
+        if (showProgress == true) p.increment();
       }
     }
   };
 
-
 void fcall(StringVector x){
   Environment env("package:nVennR");
-  Function f = env["showSVG"];
+  Function f = env["oldShowSVG"];
   f(x);
 }
+
 
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp
@@ -2548,5 +2601,54 @@ StringVector drawVenn(StringVector x) {
   //string html = "<html><body>" + lines.toSVG() + "</body></html>";
   string html = lines.toSVG();
   result.push_back(html);
+  return result;
+}
+
+
+borderLine* readVennInfo(List x){
+  std::vector<std::string> groupNames;
+  std::vector<float> weights;
+  borderLine *line = new borderLine();
+  StringVector result = as<StringVector>(x["def"]);
+  int number = atoi(result[1]);
+  int n = twoPow(number);
+  int i;
+  for (i = 0; i < number; i++){
+    groupNames.push_back((string) result[i+2]);
+  }
+  for (i = 0; i < n; i++){
+    int j = i + 2 + number;
+    weights.push_back(atof(result[j]));
+  }
+  binMap mymap(number);
+  line = new borderLine(&mymap, groupNames, weights);
+  return line;
+}
+
+
+// [[Rcpp::export]]
+List makeVenn(List x, int nCycl, bool showProgress){
+  List toret = List::create(Named("def") = x["def"]);
+  borderLine* line = readVennInfo(x);
+  if (x.containsElementNamed("set")){  // Previous run
+    string points = Rcpp::as<std::string>(x["set"]);
+    line->setCoords(points);
+  }
+  line->simulate((UINT) nCycl, showProgress);
+  toret["set"] = line->saveFigure();
+  if (x.containsElementNamed("reg")) toret["reg"] = x["reg"];
+  if (x.containsElementNamed("orig")) toret["orig"] = x["orig"];
+  return toret;
+}
+
+// [[Rcpp::export]]
+StringVector refineVenn(List x, bool showProgress = false){
+  borderLine* line = readVennInfo(x);
+  if (x.containsElementNamed("set")){  // Previous run
+    string points = Rcpp::as<std::string>(x["set"]);
+    line->setCoords(points);
+  }
+  line->refine(showProgress);
+  StringVector result = (line->toSVG());
   return result;
 }
