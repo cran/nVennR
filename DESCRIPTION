@@ -1,7 +1,7 @@
 Package: nVennR
 Type: Package
 Title: Create n-Dimensional, Quasi-Proportional Venn Diagrams
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: person("Victor", "Quesada", email = "quesadavictor@uniovi.es", role=c("aut", "cre", "cph"))
 Author: Victor Quesada [aut, cre, cph]
 Maintainer: Victor Quesada <quesadavictor@uniovi.es>
@@ -16,11 +16,11 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Depends: R (>= 2.10)
-LinkingTo: Rcpp, RcppProgress
-Imports: Rcpp, RcppProgress, grImport2, rsvg
-Suggests: testthat, knitr, rmarkdown, magick
+LinkingTo: Rcpp
+Imports: Rcpp
+Suggests: knitr, rmarkdown, rsvg, grImport2
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2018-04-10 19:09:34 UTC; vqf
+Packaged: 2018-05-11 12:10:25 UTC; vqf
 Repository: CRAN
-Date/Publication: 2018-04-10 19:26:20 UTC
+Date/Publication: 2018-05-11 12:34:33 UTC
